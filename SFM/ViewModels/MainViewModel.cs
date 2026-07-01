@@ -1,24 +1,31 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using SFM.Models;
+using SFM.Services;
 
 namespace SFM.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    // Список всех NPC
-    public ObservableCollection<Npc> Npcs { get; set; } = new();
+    private readonly DialogueService _service;
+
+    public ObservableCollection<Npc> Npcs { get; } = new();
+
+    public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
     private Npc? _selectedNpc;
     public Npc? SelectedNpc
     {
         get => _selectedNpc;
-        set { _selectedNpc = value; OnPropertyChanged(); }
+        set
+        {
+            _selectedNpc = value;
+            OnPropertyChanged();
+            RefreshDialogues();
+        }
     }
-
-    // Список графов (диалогов) для выбранного NPC
-    // В моделях нет связи NPC -> Dialogues, добавим её логически здесь
-    public ObservableCollection<DialogueGraph> Dialogues { get; set; } = new();
 
     private DialogueGraph? _selectedDialogue;
     public DialogueGraph? SelectedDialogue
@@ -28,45 +35,60 @@ public class MainViewModel : ViewModelBase
         {
             _selectedDialogue = value;
             OnPropertyChanged();
-            // При смене диалога обновляем списки узлов и связей
             OnPropertyChanged(nameof(CurrentNodes));
             OnPropertyChanged(nameof(CurrentConnections));
         }
     }
 
-    public ObservableCollection<Node>? CurrentNodes => SelectedDialogue?.Nodes != null ? new ObservableCollection<Node>(SelectedDialogue.Nodes) : null;
-    public ObservableCollection<Connection>? CurrentConnections => SelectedDialogue?.Connections != null ? new ObservableCollection<Connection>(SelectedDialogue.Connections) : null;
+    public System.Collections.Generic.List<Node>? CurrentNodes => SelectedDialogue?.Nodes;
+    public System.Collections.Generic.List<Connection>? CurrentConnections => SelectedDialogue?.Connections;
 
-    // Команды
     public ICommand AddNpcCommand { get; }
     public ICommand AddDialogueCommand { get; }
     public ICommand AddNodeCommand { get; }
 
-    public MainViewModel()
+    public MainViewModel(DialogueService service)
     {
+        _service = service;
+
+        // Команда добавления NPC через сервис
         AddNpcCommand = new RelayCommand(_ => {
-            var npc = new Npc { Id = Guid.NewGuid(), Name = "Новый NPC" };
+            // В реальности тут можно открыть окно, но для примера:
+            var npc = _service.AddNpc("Новый NPC");
             Npcs.Add(npc);
             SelectedNpc = npc;
         });
 
         AddDialogueCommand = new RelayCommand(_ => {
             if (SelectedNpc == null) return;
-            var graph = new DialogueGraph { Id = Guid.NewGuid() };
-            Dialogues.Add(graph);
+
+            var graph = _service.AddDialogue(SelectedNpc, "Новый диалог");
+            CurrentNpcDialogues.Add(graph);
             SelectedDialogue = graph;
-        }, _ => SelectedNpc != null);
+        }, _ => SelectedNpc != null); // Кнопка будет неактивна, если NPC не выбран
 
         AddNodeCommand = new RelayCommand(_ => {
             if (SelectedDialogue == null) return;
-            var node = new Node { Id = Guid.NewGuid(), Text = "Новый узел" };
-            SelectedDialogue.Nodes.Add(node);
+
+            _service.AddNode(SelectedDialogue, "Текст нового узла");
             OnPropertyChanged(nameof(CurrentNodes));
         }, _ => SelectedDialogue != null);
 
-        // Тестовые данные
-        var testNpc = new Npc { Name = "Торговец" };
-        Npcs.Add(testNpc);
-        SelectedNpc = testNpc;
+        foreach (var npc in _service.Npcs)
+            Npcs.Add(npc);
+    }
+
+    private void RefreshDialogues()
+    {
+        CurrentNpcDialogues.Clear();
+        if (SelectedNpc != null)
+        {
+            var dialogues = _service.GetNpcDialogues(SelectedNpc);
+            foreach (var d in dialogues)
+            {
+                CurrentNpcDialogues.Add(d);
+            }
+        }
+        SelectedDialogue = CurrentNpcDialogues.FirstOrDefault();
     }
 }
