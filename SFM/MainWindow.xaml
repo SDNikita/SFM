@@ -61,6 +61,18 @@
             <!-- Верхняя панель с кнопками -->
             <Grid Grid.Row="0">
                 <Border BorderBrush="Black" BorderThickness="0,0,0,1"/>
+
+                <!-- Новая кнопка СЛЕВА -->
+                <Button Content="Открыть проект" 
+            HorizontalAlignment="Left" 
+            VerticalAlignment="Center" 
+            Margin="20,0,0,0"
+            Padding="15,5"
+            Command="{Binding OpenProjectCommand}"
+            Style="{StaticResource TopButtonStyle}"/>
+                <!-- Используем твой стиль -->
+
+                <!-- Твои кнопки справа (Конструктор, Симулятор...) -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <Button Content="Конструктор" Style="{StaticResource TopButtonStyle}"/>
                     <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}"/>

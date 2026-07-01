@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using SFM.Models;
 using SFM.Services;
-
+using Microsoft.Win32;
 namespace SFM.ViewModels;
 
 public class MainViewModel : ViewModelBase
@@ -13,6 +13,8 @@ public class MainViewModel : ViewModelBase
 
     public ObservableCollection<Npc> Npcs { get; } = new();
     public ICommand SaveCommand { get; }
+    public ICommand OpenProjectCommand { get; }
+
     public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
     private Npc? _selectedNpc;
@@ -53,7 +55,7 @@ public class MainViewModel : ViewModelBase
 
         // Команда добавления NPC через сервис
         AddNpcCommand = new RelayCommand(_ => {
-            // В реальности тут можно открыть окно, но для примера:
+         
             var npc = _service.AddNpc("Новый NPC");
             Npcs.Add(npc);
             SelectedNpc = npc;
@@ -61,6 +63,24 @@ public class MainViewModel : ViewModelBase
         SaveCommand = new RelayCommand(_ => {
             _service.SaveProject(); // Вызываем метод сохранения из сервиса
             System.Windows.MessageBox.Show("Проект успешно сохранен в JSON!");
+        });
+
+        OpenProjectCommand = new RelayCommand(_ => {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // Загружаем данные в сервис
+                _service.LoadProject(openFileDialog.FileName);
+
+                //  Обновляем списки в UI
+                Npcs.Clear();
+                foreach (var npc in _service.Npcs) Npcs.Add(npc);
+
+                SelectedNpc = null; // Сбрасываем выбор
+                System.Windows.MessageBox.Show("Проект успешно загружен!");
+            }
         });
 
         AddDialogueCommand = new RelayCommand(_ => {
@@ -96,4 +116,5 @@ public class MainViewModel : ViewModelBase
         SelectedDialogue = CurrentNpcDialogues.FirstOrDefault();
     }
 
+        
 }

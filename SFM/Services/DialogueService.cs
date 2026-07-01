@@ -10,8 +10,8 @@ using System.Windows.Shapes;
 
 public class DialogueService
 {
-    public List<Npc> Npcs { get; } = new();
-    public List<DialogueGraph> Dialogues { get; } = new();
+    public List<Npc> Npcs { get; private set; } = new();
+    public List<DialogueGraph> Dialogues { get; private set; } = new();
     private readonly string _path = "project_data.json";
     public Npc AddNpc(
          string name,
@@ -124,28 +124,27 @@ public class DialogueService
         File.WriteAllText(_path, json);
     }
 
-    public void LoadProject()
+    public void LoadProject(string filePath)
     {
-        if (!File.Exists(_path)) return;
+        if (!File.Exists(filePath)) return;
 
         try
         {
-            string json = File.ReadAllText(_path);
+            string json = File.ReadAllText(filePath);
             var project = JsonSerializer.Deserialize<Project>(json);
 
             if (project != null)
             {
-                Npcs.Clear();
-                if (project.Npcs != null) Npcs.AddRange(project.Npcs);
-
-                Dialogues.Clear();
-                if (project.Dialogues != null) Dialogues.AddRange(project.Dialogues);
+                this.Npcs = project.Npcs ?? new();
+                this.Dialogues = project.Dialogues ?? new();
             }
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
-            // Тут можно вывести ошибку, если JSON поврежден
+            System.Windows.MessageBox.Show($"Ошибка при чтении файла: {ex.Message}");
         }
+
+
     }
 }
 
