@@ -12,7 +12,7 @@ public class MainViewModel : ViewModelBase
     private readonly DialogueService _service;
 
     public ObservableCollection<Npc> Npcs { get; } = new();
-
+    public ICommand SaveCommand { get; }
     public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
     private Npc? _selectedNpc;
@@ -58,6 +58,10 @@ public class MainViewModel : ViewModelBase
             Npcs.Add(npc);
             SelectedNpc = npc;
         });
+        SaveCommand = new RelayCommand(_ => {
+            _service.SaveProject(); // Вызываем метод сохранения из сервиса
+            System.Windows.MessageBox.Show("Проект успешно сохранен в JSON!");
+        });
 
         AddDialogueCommand = new RelayCommand(_ => {
             if (SelectedNpc == null) return;
@@ -91,4 +95,5 @@ public class MainViewModel : ViewModelBase
         }
         SelectedDialogue = CurrentNpcDialogues.FirstOrDefault();
     }
+
 }

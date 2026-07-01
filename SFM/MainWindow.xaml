@@ -4,10 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:SFM.ViewModels"
+        xmlns:local="clr-namespace:SFM" d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         mc:Ignorable="d"
         Title="Dialogue Editor" Height="768" Width="1024">
 
     <Window.Resources>
+        <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <local:NullToVisibilityConverter x:Key="NullToHiddenConverter"/>
         <!-- Стиль для кнопок в верхней панели -->
         <Style x:Key="TopButtonStyle" TargetType="Button">
             <Setter Property="Margin" Value="10,0"/>
@@ -83,7 +86,11 @@
                         <DockPanel LastChildFill="False">
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddNpcButton_Click"/>
                             <TextBlock Text="NPC" FontSize="20" DockPanel.Dock="Top" VerticalAlignment="Top"/>
-                            <ListBox x:Name="NpcList" Margin="10,0,0,0" Width="165" Background="#FFC4C4C4" SelectionChanged="NpcList_SelectionChanged"/>
+                            <ListBox x:Name="NpcList" Margin="10,0,0,0" Width="165" 
+                                     Background="#FFC4C4C4" SelectionChanged="NpcList_SelectionChanged"
+                                     ItemsSource="{Binding Npcs}" 
+         SelectedItem="{Binding SelectedNpc, Mode=TwoWay}"
+         DisplayMemberPath="Name"/>
                             
     
                         </DockPanel>
@@ -141,8 +148,20 @@
                             </StackPanel>
                         </ScrollViewer>
                         <TextBlock Grid.Row="1" Text="Выберите NPC из списка слева" 
-                            VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray"
-                            Visibility="{Binding SelectedNpc, Converter={StaticResource NullToHiddenConverter}}"/>
+                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray" TextWrapping="Wrap" TextAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <!-- По умолчанию скрыта -->
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedNpc}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <!-- Показать, если NULL -->
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
                         <Button Grid.Row="2" Content="Сохранить изменения" 
                             Command="{Binding SaveCommand}"

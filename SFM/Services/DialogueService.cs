@@ -6,11 +6,13 @@ using System.Text.Json;
 namespace SFM.Services;
 using System.IO;
 using System.Linq;
+using System.Windows.Shapes;
+
 public class DialogueService
 {
     public List<Npc> Npcs { get; } = new();
     public List<DialogueGraph> Dialogues { get; } = new();
-
+    private readonly string _path = "project_data.json";
     public Npc AddNpc(
          string name,
          string description = "",
@@ -108,6 +110,42 @@ public class DialogueService
     public List<DialogueGraph> GetNpcDialogues(Npc npc)
     {
         return Dialogues.Where(d => d.NpcId == npc.Id).ToList();
+    }
+    public void SaveProject()
+    {
+        var project = new Project
+        {
+            Npcs = this.Npcs,
+            Dialogues = this.Dialogues
+        };
+
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string json = JsonSerializer.Serialize(project, options);
+        File.WriteAllText(_path, json);
+    }
+
+    public void LoadProject()
+    {
+        if (!File.Exists(_path)) return;
+
+        try
+        {
+            string json = File.ReadAllText(_path);
+            var project = JsonSerializer.Deserialize<Project>(json);
+
+            if (project != null)
+            {
+                Npcs.Clear();
+                if (project.Npcs != null) Npcs.AddRange(project.Npcs);
+
+                Dialogues.Clear();
+                if (project.Dialogues != null) Dialogues.AddRange(project.Dialogues);
+            }
+        }
+        catch (System.Exception)
+        {
+            // Тут можно вывести ошибку, если JSON поврежден
+        }
     }
 }
 

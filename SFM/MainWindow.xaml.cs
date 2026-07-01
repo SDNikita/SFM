@@ -1,6 +1,7 @@
 ﻿//using SFM.Editor;
 using SFM.Models;
 using SFM.Services;
+using SFM.ViewModels;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,12 +20,13 @@ namespace SFM
     /// </summary>
     public partial class MainWindow : Window
     {
-        private DialogueService service = new DialogueService();
+        private DialogueService service = new DialogueService(); 
         public MainWindow()
         {
             InitializeComponent();
 
-
+            var viewModel = new MainViewModel(service);
+            this.DataContext = viewModel;
         }
 
         private void AddNpcButton_Click(object sender, RoutedEventArgs e)
