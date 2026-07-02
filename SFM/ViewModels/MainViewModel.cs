@@ -41,9 +41,18 @@ public class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(CurrentConnections));
         }
     }
-
-    public System.Collections.Generic.List<Node>? CurrentNodes => SelectedDialogue?.Nodes;
-    public System.Collections.Generic.List<Connection>? CurrentConnections => SelectedDialogue?.Connections;
+    private Node? _selectedNode;
+    public Node? SelectedNode
+    {
+        get => _selectedNode;
+        set
+        {
+            _selectedNode = value;
+            OnPropertyChanged();
+        }
+    }
+    public List<Node>? CurrentNodes => SelectedDialogue?.Nodes?.ToList();
+    public List<Connection>? CurrentConnections => SelectedDialogue?.Connections;
 
     public ICommand AddNpcCommand { get; }
     public ICommand AddDialogueCommand { get; }
@@ -83,6 +92,21 @@ public class MainViewModel : ViewModelBase
             }
         });
 
+        AddNodeCommand = new RelayCommand(_ => {
+            if (SelectedDialogue == null)
+            {
+                System.Windows.MessageBox.Show("Сначала выберите или создайте диалог!");
+                return;
+            }
+
+            var newNode = _service.AddNode(SelectedDialogue, "Новая реплика...");
+
+            newNode.X = 100;
+            newNode.Y = 100;
+
+            OnPropertyChanged(nameof(CurrentNodes));
+        }, _ => SelectedDialogue != null);
+
         AddDialogueCommand = new RelayCommand(_ => {
             if (SelectedNpc == null) return;
 
@@ -116,5 +140,20 @@ public class MainViewModel : ViewModelBase
         SelectedDialogue = CurrentNpcDialogues.FirstOrDefault();
     }
 
-        
+    public Node? AddNodeToCurrentDialogue(string text)
+    {
+        // выбран ли диалог. Без него узел некуда добавлять.
+        if (SelectedDialogue == null) return null;
+
+        // 2. Вызываем метод  сервиса
+        var newNode = _service.AddNode(SelectedDialogue, text);
+
+        // 3. Устанавливаем начальные координаты (чтобы не в (0,0))
+        newNode.X = 100;
+        newNode.Y = 100;
+
+        OnPropertyChanged(nameof(CurrentNodes));
+
+        return newNode;
+    }
 }

@@ -120,56 +120,59 @@
                 </Grid>
 
                 <Border Grid.Column="1" Background="#1E1E1E" ClipToBounds="True">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                        <!-- Контейнер для графа -->
-                        <ItemsControl ItemsSource="{Binding CurrentNodes}">
-                            <!-- Canvas как панель размещения -->
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas Background="#1E1E1E" Width="2000" Height="2000" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
+                    <Grid Background="#1E1E1E">
+                        <!-- Фон теперь здесь -->
 
-                            <!--  координаты для каждого узла -->
-                            <ItemsControl.ItemContainerStyle>
-                                <Style TargetType="ContentPresenter">
-                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
-                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                                </Style>
-                            </ItemsControl.ItemContainerStyle>
+                        <!-- Слой линий (снизу) -->
+                        <Canvas x:Name="ConnectionsCanvas" Panel.ZIndex="0" IsHitTestVisible="False" Background="Transparent"/>
 
-                            <!-- Визуальный вид узла  -->
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Width="200" Background="#2D2D2D" CornerRadius="8" BorderBrush="#3F3F3F" BorderThickness="1">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <!-- Заголовок -->
-                                                <RowDefinition Height="*"/>
-                                                <!-- Текст -->
-                                            </Grid.RowDefinitions>
+                        <!-- Кнопка (сверху всех) -->
+                        <Button Content="+ Создать реплику (Node)" 
+                HorizontalAlignment="Left" VerticalAlignment="Top" 
+                Margin="15" Padding="10,5" Panel.ZIndex="10"
+                Background="#3D3D3D" Foreground="#660BAB"
+                Click="AddNode_Click"/>
 
-                                            <!-- Заголовок узла  -->
-                                            <Border Background="#3D3D3D" CornerRadius="8,8,0,0" Padding="10,5">
-                                                <TextBlock Text="РЕПЛИКА NPC" FontSize="10" Foreground="#AAA" FontWeight="Bold"/>
-                                            </Border>
+                        <!-- Слой узлов -->
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" 
+                      Panel.ZIndex="1" Background="Transparent">
+                            <ItemsControl ItemsSource="{Binding CurrentNodes}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <!-- ВАЖНО: Background="Transparent" -->
+                                        <Canvas Background="Transparent" Width="2000" Height="2000" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
 
-                                            <StackPanel Grid.Row="1">
-                                                <TextBlock Text="{Binding Text}" Foreground="White" TextWrapping="Wrap" FontSize="12"/>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}" />
+                                        <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
 
-                                                <!-- Точки входа/выхода -->
-                                                <Grid Margin="0,10,0,0">
-                                                    <Ellipse HorizontalAlignment="Left" Width="8" Height="8" Fill="#555" ToolTip="Вход"/>
-                                                    <Ellipse HorizontalAlignment="Right" Width="8" Height="8" Fill="#9C27B0" ToolTip="Выход"/>
-                                                </Grid>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Thumb DragDelta="Node_DragDelta">
+                                            <Thumb.Template>
+                                                <ControlTemplate>
+                                                    <!-- Твой дизайн узла -->
+                                                    <Border Width="180" Background="#2D2D2D" CornerRadius="5" BorderBrush="#555" BorderThickness="1">
+                                                        <StackPanel>
+                                                            <Border Background="MediumPurple" Padding="5">
+                                                                <TextBlock Text="NPC REPLY" FontSize="9" Foreground="White" FontWeight="Bold"/>
+                                                            </Border>
+                                                            <TextBlock Text="{Binding Text}" Margin="10" Foreground="White" TextWrapping="Wrap"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
                 </Border>
 
 
