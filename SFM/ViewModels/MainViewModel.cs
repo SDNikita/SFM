@@ -26,6 +26,7 @@ public class MainViewModel : ViewModelBase
             _selectedNpc = value;
             OnPropertyChanged();
             RefreshDialogues();
+
         }
     }
 
@@ -92,20 +93,20 @@ public class MainViewModel : ViewModelBase
             }
         });
 
-        AddNodeCommand = new RelayCommand(_ => {
-            if (SelectedDialogue == null)
-            {
-                System.Windows.MessageBox.Show("Сначала выберите или создайте диалог!");
-                return;
-            }
+        //AddNodeCommand = new RelayCommand(_ => {
+        //    if (SelectedDialogue == null)
+        //    {
+        //        System.Windows.MessageBox.Show("Сначала выберите или создайте диалог!");
+        //        return;
+        //    }
 
-            var newNode = _service.AddNode(SelectedDialogue, "Новая реплика...");
+        //    var newNode = _service.AddNode(SelectedDialogue, "Новая реплика...");
 
-            newNode.X = 100;
-            newNode.Y = 100;
+        //    newNode.X = 100;
+        //    newNode.Y = 100;
 
-            OnPropertyChanged(nameof(CurrentNodes));
-        }, _ => SelectedDialogue != null);
+        //    OnPropertyChanged(nameof(CurrentNodes));
+        //}, _ => SelectedDialogue != null);
 
         AddDialogueCommand = new RelayCommand(_ => {
             if (SelectedNpc == null) return;

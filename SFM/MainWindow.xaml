@@ -205,68 +205,101 @@
 
                 <!-- свойства-->
                 <Border Grid.Column="2" BorderBrush="#DDD" BorderThickness="1,0,0,0" Background="White">
-                    <Grid Margin="15" >
+                    <Grid Margin="15">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                    <TextBlock Text="Свойства" FontSize="20" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold"/>
-                        <!-- свойства для нпс-->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="{Binding SelectedNpc, Converter={StaticResource NullToVisibilityConverter}}">
-                            <StackPanel DataContext="{Binding SelectedNpc}">
 
-                                <TextBlock Text="Имя:" Margin="0,5,0,2" Foreground="Gray" FontSize="14"/>
-                                <TextBox Text="{Binding Name, UpdateSourceTrigger= PropertyChanged}" 
-                                         FontSize="14" Padding="5" Margin="0,0,0,10"/>
+                        <TextBlock Text="Свойства" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                        <!-- КОНТЕЙНЕР ДЛЯ ВСЕХ СВОЙСТВ -->
+                        <Grid Grid.Row="1">
+
+                            <!-- 1. СВОЙСТВА НОДЫ (Высший приоритет) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.Style>
+                                    <Style TargetType="ScrollViewer">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <!-- Показываем, если SelectedNode НЕ равен null -->
+                                            <DataTrigger Binding="{Binding SelectedNode, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ScrollViewer.Style>
+
+                                <StackPanel DataContext="{Binding SelectedNode}">
+                                    <TextBlock Text="Текст реплики (Node):" Foreground="Gray" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"/>
+                                    <TextBlock Text="Создать переход (ВЫбора игрока):" Foreground="Gray" FontWeight="Bold"/>
+                                    <TextBlock Text="Куда  ведет выбор" Foreground="Gray" FontWeight="Bold" FontSize="10"/>
+                                    <TextBlock Text="Текст выбора(Ответ игрока)" Foreground="Gray" FontWeight="Bold" FontSize="10"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- 2. СВОЙСТВА NPC (Показываем, только если нода НЕ выбрана, а NPC выбран) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.Style>
+                                    <Style TargetType="ScrollViewer">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <!-- Нода должна быть пуста -->
+                                                    <Condition Binding="{Binding SelectedNode}" Value="{x:Null}"/>
+                                                    <!-- А NPC должен быть выбран -->
+                                                    <Condition Binding="{Binding SelectedNpc, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ScrollViewer.Style>
                                 
-                                <TextBlock Text="Описание: " Margin="0,5,0,2" Foreground="Gray" FontSize="14"/>
-                                <TextBox Text="{Binding Description, UpdateSourceTrigger= PropertyChanged}" 
-                                         FontSize="14" Padding="5" Margin="0,0,0,10" 
-                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"/>
+                                <!-- Свойста нпс -->
+                                <StackPanel DataContext="{Binding SelectedNpc}">
+                                    <TextBlock Text="Имя NPC:" Foreground="Gray"/>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,5" Padding="5"/>
+                                    <TextBlock Text="Описание:" Foreground="Gray" Margin="0,10,0,0"/>
+                                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                    <TextBlock Text="Предыстория:" Foreground="Gray" Margin="0,10,0,0"/>
+                                    <TextBox Text="{Binding Backstory, UpdateSourceTrigger=PropertyChanged}" 
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                    <TextBlock Text="Стиль речи:" Foreground="Gray" Margin="0,10,0,0"/>
+                                    <TextBox Text="{Binding DialogueStyle, UpdateSourceTrigger=PropertyChanged}" 
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                </StackPanel>
+                            </ScrollViewer>
 
-                                <TextBlock Text="Предыстория:" Margin="0,5,0,2" Foreground="Gray"/>
-                                <TextBox Text="{Binding Backstory, UpdateSourceTrigger=PropertyChanged}" 
-                                    AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80"
-                                    Padding="5" Margin="0,0,0,10"/>
+                            <!-- 3. ЗАГЛУШКА (Если совсем ничего не выбрано) -->
+                            <TextBlock Text="Выберите объект" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding SelectedNode}" Value="{x:Null}"/>
+                                                    <Condition Binding="{Binding SelectedNpc}" Value="{x:Null}"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
 
-                                <TextBlock Text="Стиль диалога:" Margin="0,5,0,2" Foreground="Gray"/>
-                                <TextBox Text="{Binding DialogueStyle, UpdateSourceTrigger=PropertyChanged}" 
-                                    Padding="5" Margin="0,0,0,10"/>
-
-                                <TextBlock Text="URL Аватара:" Margin="0,5,0,2" Foreground="Gray"/>
-                                <TextBox Text="{Binding AvatarUrl, UpdateSourceTrigger=PropertyChanged}" 
-                                    Padding="5" Margin="0,0,0,10"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                        <TextBlock Grid.Row="1" Text="Выберите NPC из списка слева" 
-                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray" TextWrapping="Wrap" TextAlignment="Center">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <!-- По умолчанию скрыта -->
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedNpc}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <!-- Показать, если NULL -->
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <Button Grid.Row="2" Content="Сохранить изменения" 
-                            Command="{Binding SaveCommand}"
-                            Height="40" Margin="0,10,0,0">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="10"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+                        <Button Grid.Row="2" Content="Сохранить проект" Command="{Binding SaveCommand}" Height="40" Margin="0,10,0,0"/>
                     </Grid>
                 </Border>
-                
+
             </Grid>
         </Grid>
     </Border>
