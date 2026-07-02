@@ -11,6 +11,9 @@
     <Window.Resources>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToHiddenConverter"/>
+        <local:EqualityConverter x:Key="EqualityConverter"/>
+
+
         <!-- Стиль для кнопок в верхней панели -->
         <Style x:Key="TopButtonStyle" TargetType="Button">
             <Setter Property="Margin" Value="10,0"/>
@@ -128,36 +131,38 @@
 
                         <!-- Кнопка (сверху всех) -->
                         <Button Content="+ Создать реплику (Node)" 
-                HorizontalAlignment="Left" VerticalAlignment="Top" 
-                Margin="15" Padding="10,5" Panel.ZIndex="10"
-                Background="#3D3D3D" Foreground="#660BAB"
-                Click="AddNode_Click"/>
+                            HorizontalAlignment="Left" VerticalAlignment="Top" 
+                            Margin="15" Padding="10,5" Panel.ZIndex="10"
+                            Background="#3D3D3D" Foreground="#660BAB"
+                            Click="AddNode_Click"/>
 
                         <!-- Слой узлов -->
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" 
-                      Panel.ZIndex="1" Background="Transparent">
+                             Panel.ZIndex="1" Background="Transparent">
                             <ItemsControl ItemsSource="{Binding CurrentNodes}">
                                 <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <!-- ВАЖНО: Background="Transparent" -->
-                                        <Canvas Background="Transparent" Width="2000" Height="2000" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas Background="Transparent" Width="2000" Height="2000" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
 
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}" />
-                                        <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}" />
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}" />
+                                            <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}" />
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
 
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Thumb DragDelta="Node_DragDelta">
+                                        <!-- Добавляем PreviewMouseDown для выбора ноды -->
+                                        <Thumb DragDelta="Node_DragDelta" PreviewMouseDown="Node_PreviewMouseDown">
                                             <Thumb.Template>
                                                 <ControlTemplate>
-                                                    <!-- Твой дизайн узла -->
-                                                    <Border Width="180" Background="#2D2D2D" CornerRadius="5" BorderBrush="#555" BorderThickness="1">
+                                                    <!-- Даем имя бордеру, чтобы триггер мог его найти -->
+                                                    <Border x:Name="NodeBorder" 
+                                                            Width="180" Background="#2D2D2D" 
+                                                            CornerRadius="5" BorderBrush="#555" BorderThickness="1">
                                                         <StackPanel>
                                                             <Border Background="MediumPurple" Padding="5">
                                                                 <TextBlock Text="NPC REPLY" FontSize="9" Foreground="White" FontWeight="Bold"/>
@@ -165,15 +170,37 @@
                                                             <TextBlock Text="{Binding Text}" Margin="10" Foreground="White" TextWrapping="Wrap"/>
                                                         </StackPanel>
                                                     </Border>
+
+                                                    <ControlTemplate.Triggers>
+                                                        <!-- Триггер: если этот Node является выбранным во ViewModel -->
+                                                        <DataTrigger Value="True">
+                                                            <DataTrigger.Binding>
+                                                                <MultiBinding Converter="{StaticResource EqualityConverter}">
+                                                                    <Binding />
+                                                                    <!-- Текущий Node -->
+                                                                    <Binding Path="DataContext.SelectedNode" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                </MultiBinding>
+                                                            </DataTrigger.Binding>
+
+                                                            <!-- Эффект подсветки -->
+                                                            <Setter TargetName="NodeBorder" Property="BorderBrush" Value="Cyan"/>
+                                                            <Setter TargetName="NodeBorder" Property="BorderThickness" Value="2"/>
+                                                            <Setter TargetName="NodeBorder" Property="Effect">
+                                                                <Setter.Value>
+                                                                    <DropShadowEffect BlurRadius="15" Color="Cyan" ShadowDepth="0" Opacity="0.8"/>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </DataTrigger>
+                                                    </ControlTemplate.Triggers>
                                                 </ControlTemplate>
                                             </Thumb.Template>
                                         </Thumb>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
 
 
                 <!-- свойства-->

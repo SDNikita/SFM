@@ -158,5 +158,19 @@ namespace SFM
                 RedrawConnections();
             }
         }
+
+        //Обработка клика по ноде
+        private void Node_PreviewMouseDown(object sender, MouseEventArgs e)
+        {
+            if(DataContext is MainViewModel vm)
+            {
+                var element = sender as FrameworkElement;
+                var node = element?.DataContext as Node;
+
+                if (node!= null) {
+                    vm.SelectedNode = node;
+                }
+            }
+        } 
     }
 }
