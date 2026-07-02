@@ -27,7 +27,14 @@ namespace SFM
 
             var viewModel = new MainViewModel(service);
             this.DataContext = viewModel;
-        }
+            // Подписываемся на уведомления от ViewModel
+            viewModel.PropertyChanged += (s, e) => {
+        if (e.PropertyName == nameof(viewModel.CurrentConnections) || e.PropertyName == nameof(viewModel.SelectedDialogue))
+            {
+                RedrawConnections(); // Рисуем линии, когда создана новая связь
+            }
+        };
+            }
 
         private void AddNpcButton_Click(object sender, RoutedEventArgs e)
         {
@@ -55,9 +62,11 @@ namespace SFM
 
             if (window.ShowDialog() == true)
             {
-                service.AddDialogue(window.SelectedNpc, window.DialoName);
-
-                RefreshDialogueList();
+                if (window.ShowDialog() == true && window.SelectedNpc != null)
+                {
+                    service.AddDialogue(window.SelectedNpc, window.DialoName);
+                    RefreshDialogueList();
+                }
             }
         }
         private void RefreshNpcList()

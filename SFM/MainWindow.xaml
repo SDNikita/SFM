@@ -183,7 +183,7 @@
                                                             </DataTrigger.Binding>
 
                                                             <!-- Эффект подсветки -->
-                                                            <Setter TargetName="NodeBorder" Property="BorderBrush" Value="Cyan"/>
+                                                            <Setter TargetName="NodeBorder" Property="BorderBrush" Value="MediumPurple"/>
                                                             <Setter TargetName="NodeBorder" Property="BorderThickness" Value="2"/>
                                                             <Setter TargetName="NodeBorder" Property="Effect">
                                                                 <Setter.Value>
@@ -235,10 +235,38 @@
                                     <TextBlock Text="Текст реплики (Node):" Foreground="Gray" FontWeight="Bold"/>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"/>
-                                    <TextBlock Text="Создать переход (ВЫбора игрока):" Foreground="Gray" FontWeight="Bold"/>
-                                    <TextBlock Text="Куда  ведет выбор" Foreground="Gray" FontWeight="Bold" FontSize="10"/>
-                                    <TextBlock Text="Текст выбора(Ответ игрока)" Foreground="Gray" FontWeight="Bold" FontSize="10"/>
+                                    <!-- Внутри StackPanel свойств ноды -->
+                                    <Border BorderBrush="#EEE" BorderThickness="0,1,0,0" Margin="0,15,0,0" Padding="0,10,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Создать переход (Выбор игрока):" Foreground="MediumPurple" FontWeight="Bold" Margin="0,0,0,10"/>
 
+                                            <TextBlock Text="Куда ведет выбор:" Foreground="Gray" FontSize="10" FontWeight="Bold"/>
+                                            <!-- Выпадающий список всех нод этого диалога -->
+                                            <ComboBox ItemsSource="{Binding DataContext.CurrentNodes, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  SelectedItem="{Binding DataContext.TargetNodeForConnection, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  Margin="0,5,0,10" Padding="5">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Text, TargetNullValue='(Пустая реплика)'}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+
+                                            <TextBlock Text="Текст выбора (Ответ игрока):" Foreground="Gray" FontSize="10" FontWeight="Bold"/>
+                                            <TextBox Text="{Binding DataContext.NewConnectionText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Margin="0,5,0,10" Padding="5"/>
+
+                                            <Button Content="Создать связь" 
+                                                Command="{Binding DataContext.AddConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                Background="MediumPurple" Foreground="White" FontWeight="Bold" Height="30">
+                                                <Button.Resources>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="CornerRadius" Value="5"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </ScrollViewer>
 

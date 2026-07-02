@@ -5,6 +5,7 @@ using System.Windows.Input;
 using SFM.Models;
 using SFM.Services;
 using Microsoft.Win32;
+using System.IO.Packaging;
 namespace SFM.ViewModels;
 
 public class MainViewModel : ViewModelBase
@@ -14,6 +15,8 @@ public class MainViewModel : ViewModelBase
     public ObservableCollection<Npc> Npcs { get; } = new();
     public ICommand SaveCommand { get; }
     public ICommand OpenProjectCommand { get; }
+    public ICommand AddConnectionCommand { get; }
+
 
     public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
@@ -50,6 +53,25 @@ public class MainViewModel : ViewModelBase
         {
             _selectedNode = value;
             OnPropertyChanged();
+        }
+    }
+    private Node? _targetNodeForConnection;
+    public Node? TargetNodeForConnection
+    {
+        get => _targetNodeForConnection;
+        set
+        {
+            _targetNodeForConnection = value; OnPropertyChanged();
+        }
+    }
+
+    private string _newConnectionText = "Далее..";
+    public string NewConnectionText
+    {
+        get=> _newConnectionText;
+        set
+        {
+            _newConnectionText= value; OnPropertyChanged();
         }
     }
     public List<Node>? CurrentNodes => SelectedDialogue?.Nodes?.ToList();
@@ -115,6 +137,21 @@ public class MainViewModel : ViewModelBase
             CurrentNpcDialogues.Add(graph);
             SelectedDialogue = graph;
         }, _ => SelectedNpc != null); // Кнопка будет неактивна, если NPC не выбран
+
+        AddConnectionCommand = new RelayCommand(_ => {
+            if (SelectedNode == null || TargetNodeForConnection == null) return;
+
+            if (SelectedDialogue != null && SelectedNode != null && TargetNodeForConnection != null)
+            {
+                _service.AddConnection(SelectedDialogue, SelectedNode, TargetNodeForConnection, NewConnectionText);
+            }
+
+            NewConnectionText = "Далее...";
+            TargetNodeForConnection = null;
+
+            OnPropertyChanged(nameof(CurrentConnections));
+
+        }, _ => SelectedNode != null && TargetNodeForConnection != null);
 
         AddNodeCommand = new RelayCommand(_ => {
             if (SelectedDialogue == null) return;
