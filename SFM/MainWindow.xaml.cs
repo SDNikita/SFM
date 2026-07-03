@@ -263,5 +263,7 @@ namespace SFM
             _isPanning = false;
             ((UIElement)sender).ReleaseMouseCapture();
         }
+
+        
     }
 }

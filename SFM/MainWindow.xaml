@@ -10,40 +10,79 @@
         KeyDown="Window_KeyDown">
 
     <Window.Resources>
+        <!-- Конвертеры (оставляем как было) -->
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <local:NullToVisibilityConverter x:Key="NullToHiddenConverter"/>
         <local:EqualityConverter x:Key="EqualityConverter"/>
 
+        <!-- ЦВЕТОВАЯ ПАЛИТРА QUESTSMITH -->
+        <SolidColorBrush x:Key="BgDark" Color="#2B2B2B"/>
+        <!-- Фон окна -->
+        <SolidColorBrush x:Key="PanelDark" Color="#1A1A1E"/>
+        <!-- Фон панелей -->
+        <SolidColorBrush x:Key="AccentPurple" Color="#BB86FC"/>
+        <!-- Фиолетовый акцент -->
+        <SolidColorBrush x:Key="AccentTeal" Color="#03DAC6"/>
+        <!-- Бирюзовый акцент (для +) -->
+        <SolidColorBrush x:Key="TextMain" Color="#E0E0E0"/>
+        <!-- Основной текст -->
+        <SolidColorBrush x:Key="BorderDark" Color="#333338"/>
+        <!-- Границы -->
 
-        <!-- Стиль для кнопок в верхней панели -->
+        <!-- ОБНОВЛЕННЫЙ СТИЛЬ ВЕРХНИХ КНОПОК -->
         <Style x:Key="TopButtonStyle" TargetType="Button">
             <Setter Property="Margin" Value="10,0"/>
             <Setter Property="Padding" Value="20,10"/>
-            <Setter Property="FontSize" Value="25"/>
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="10" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="BtnBorder" 
+                            BorderBrush="{StaticResource BorderDark}" 
+                            BorderThickness="1" 
+                            CornerRadius="12" 
+                            Background="{StaticResource PanelDark}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Эффект при наведении -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#252529"/>
+                                <Setter TargetName="BtnBorder" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                            </Trigger>
+                            <!-- Эффект при нажатии -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="{StaticResource AccentPurple}"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- Стиль для маленьких кнопок "+" -->
+        <!-- ОБНОВЛЕННЫЙ СТИЛЬ КНОПОК "+" -->
         <Style x:Key="PlusButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="30"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource AccentPurple}"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="5" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border x:Name="BtnBorder" CornerRadius="16" Background="{TemplateBinding Background}">
+                            <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -53,7 +92,7 @@
 
 
 
-    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="20" Margin="10" Background="White">
+    <Border Background="{StaticResource BgDark}">
         <Grid>
             <Grid.RowDefinitions>
                 <!-- Верхняя панель -->
@@ -80,7 +119,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <Button Content="Конструктор" Style="{StaticResource TopButtonStyle}"/>
                     <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}"/>
-                    <Button Content="Импорт" Style="{StaticResource TopButtonStyle}"/>
+                    <Button Content="Импорт" Style="{StaticResource TopButtonStyle}" />
                 </StackPanel>
             </Grid>
 
@@ -101,12 +140,13 @@
                     <Border BorderBrush="Black" BorderThickness="0,0,1,1" Padding="15">
                         <DockPanel LastChildFill="False">
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddNpcButton_Click"/>
-                            <TextBlock Text="NPC" FontSize="20" DockPanel.Dock="Top" VerticalAlignment="Top"/>
+                            <TextBlock Text="NPC" FontSize="20" DockPanel.Dock="Top" VerticalAlignment="Top" Foreground="{StaticResource TextMain}"/>
                             <ListBox x:Name="NpcList" Margin="10,0,0,0" Width="165" 
-                                     Background="#FFC4C4C4" SelectionChanged="NpcList_SelectionChanged"
+                                     Background="{StaticResource PanelDark}" SelectionChanged="NpcList_SelectionChanged"
                                      ItemsSource="{Binding Npcs}" 
                                      SelectedItem="{Binding SelectedNpc, Mode=TwoWay}"
-                                     DisplayMemberPath="Name"/> 
+                                     DisplayMemberPath="Name"
+                                     Foreground="Gray"/> 
                             
     
                         </DockPanel>
@@ -116,8 +156,8 @@
                     <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0,0,1,0" Padding="15">
                         <DockPanel LastChildFill="False">
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddDialogueButton_Click"/>
-                            <TextBlock Text="Диалоги" FontSize="20" DockPanel.Dock="Top" Height="49"/>
-                            <ListBox x:Name="DialogueList" Margin="10,0,0,0" Background="#FFC4C4C4" Width="165"/>
+                            <TextBlock Text="Диалоги" Foreground="{StaticResource TextMain}" FontSize="20" DockPanel.Dock="Top" Height="49"/>
+                            <ListBox x:Name="DialogueList" Margin="10,0,0,0" Background="{StaticResource PanelDark}" Width="165" Foreground="Gray"/>
 
                         </DockPanel>
                     </Border>
@@ -207,14 +247,14 @@
                         <Button Content="+ Создать реплику" 
                 HorizontalAlignment="Left" VerticalAlignment="Top" 
                 Margin="15" Padding="10,5" Panel.ZIndex="10"
-                Background="#3D3D3D" Foreground="White"
+                Background="#3D3D3D" Foreground="MediumPurple"
                 Click="AddNode_Click"/>
                     </Grid>
                 </Border>
 
 
                 <!-- свойства-->
-                <Border Grid.Column="2" BorderBrush="#DDD" BorderThickness="1,0,0,0" Background="White">
+                <Border Grid.Column="2" Background="{StaticResource BgDark}">
                     <Grid Margin="15">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -222,7 +262,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="Свойства" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <TextBlock Text="Свойства" Foreground="MediumPurple" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
                         <!-- КОНТЕЙНЕР ДЛЯ ВСЕХ СВОЙСТВ -->
                         <Grid Grid.Row="1">
@@ -254,27 +294,30 @@
                                     </Button>
                                     <TextBlock Text="Текст реплики (Node):" Foreground="Gray" FontWeight="Bold"/>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
-                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"/>
+                                        AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"
+                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
                                     <!-- Внутри StackPanel свойств ноды -->
-                                    <Border BorderBrush="#EEE" BorderThickness="0,1,0,0" Margin="0,15,0,0" Padding="0,10,0,0">
+                                    <Border BorderBrush="{StaticResource PanelDark}" BorderThickness="0,1,0,0" Margin="0,15,0,0" Padding="0,10,0,0">
                                         <StackPanel>
-                                            <TextBlock Text="Создать переход (Выбор игрока):" Foreground="MediumPurple" FontWeight="Bold" Margin="0,0,0,10"/>
+                                            <TextBlock Text="Создать переход Выбор игрока:" Foreground="MediumPurple" FontWeight="Bold" Margin="0,0,0,10"/>
 
                                             <TextBlock Text="Куда ведет выбор:" Foreground="Gray" FontSize="10" FontWeight="Bold"/>
                                             <!-- Выпадающий список всех нод этого диалога -->
                                             <ComboBox ItemsSource="{Binding DataContext.CurrentNodes, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   SelectedItem="{Binding DataContext.TargetNodeForConnection, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  Margin="0,5,0,10" Padding="5">
+                                                  Margin="0,5,0,10" Padding="5"
+                                                      Background="{StaticResource PanelDark}" >
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock Text="{Binding Text, TargetNullValue='(Пустая реплика)'}"/>
+                                                        <TextBlock Text="{Binding Text, TargetNullValue='(Пустая реплика)'}" />
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
 
                                             <TextBlock Text="Текст выбора (Ответ игрока):" Foreground="Gray" FontSize="10" FontWeight="Bold"/>
                                             <TextBox Text="{Binding DataContext.NewConnectionText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" 
-                                                 Margin="0,5,0,10" Padding="5"/>
+                                                 Margin="0,5,0,10" Padding="5"
+                                                    Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}" />
 
                                             <Button Content="Создать связь" 
                                                 Command="{Binding DataContext.AddConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -315,16 +358,19 @@
                                 <!-- Свойста нпс -->
                                 <StackPanel DataContext="{Binding SelectedNpc}">
                                     <TextBlock Text="Имя NPC:" Foreground="Gray"/>
-                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,5" Padding="5"/>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}" Margin="0,5" Padding="5"/>
                                     <TextBlock Text="Описание:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
-                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"
+                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
                                     <TextBlock Text="Предыстория:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding Backstory, UpdateSourceTrigger=PropertyChanged}" 
-                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"
+                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
                                     <TextBlock Text="Стиль речи:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding DialogueStyle, UpdateSourceTrigger=PropertyChanged}" 
-                                        AcceptsReturn="True" MinHeight="60" Padding="5"/>
+                                        AcceptsReturn="True" MinHeight="60" Padding="5"
+                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
                                 </StackPanel>
                             </ScrollViewer>
                             <!-- 3. СВОЙСТВА ВЫБРАННОЙ СВЯЗИ -->
@@ -373,7 +419,7 @@
                             </TextBlock>
                         </Grid>
 
-                        <Button Grid.Row="2" Content="Сохранить проект" Command="{Binding SaveCommand}" Height="40" Margin="0,10,0,0"/>
+                        <Button Grid.Row="2" Content="Сохранить проект"  Style="{StaticResource TopButtonStyle}" FontSize="14" Command="{Binding SaveCommand}" />
                     </Grid>
                 </Border>
 
