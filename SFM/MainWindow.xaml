@@ -142,11 +142,11 @@
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddNpcButton_Click"/>
                             <TextBlock Text="NPC" FontSize="20" DockPanel.Dock="Top" VerticalAlignment="Top" Foreground="{StaticResource TextMain}"/>
                             <ListBox x:Name="NpcList" Margin="10,0,0,0" Width="165" 
-                                     Background="{StaticResource PanelDark}" SelectionChanged="NpcList_SelectionChanged"
+                                     Background="{StaticResource BorderDark}" SelectionChanged="NpcList_SelectionChanged"
                                      ItemsSource="{Binding Npcs}" 
                                      SelectedItem="{Binding SelectedNpc, Mode=TwoWay}"
                                      DisplayMemberPath="Name"
-                                     Foreground="Gray"/> 
+                                     Foreground="{StaticResource TextMain}"/> 
                             
     
                         </DockPanel>
@@ -157,7 +157,7 @@
                         <DockPanel LastChildFill="False">
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddDialogueButton_Click"/>
                             <TextBlock Text="Диалоги" Foreground="{StaticResource TextMain}" FontSize="20" DockPanel.Dock="Top" Height="49"/>
-                            <ListBox x:Name="DialogueList" Margin="10,0,0,0" Background="{StaticResource PanelDark}" Width="165" Foreground="Gray"/>
+                            <ListBox x:Name="DialogueList" Margin="10,0,0,0" Background="{StaticResource BorderDark}" Width="165" Foreground="{StaticResource TextMain}"/>
 
                         </DockPanel>
                     </Border>
@@ -295,9 +295,9 @@
                                     <TextBlock Text="Текст реплики (Node):" Foreground="Gray" FontWeight="Bold"/>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"
-                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
+                                             Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}"/>
                                     <!-- Внутри StackPanel свойств ноды -->
-                                    <Border BorderBrush="{StaticResource PanelDark}" BorderThickness="0,1,0,0" Margin="0,15,0,0" Padding="0,10,0,0">
+                                    <Border BorderBrush="{StaticResource BorderDark}" BorderThickness="0,1,0,0" Margin="0,15,0,0" Padding="0,10,0,0">
                                         <StackPanel>
                                             <TextBlock Text="Создать переход Выбор игрока:" Foreground="MediumPurple" FontWeight="Bold" Margin="0,0,0,10"/>
 
@@ -306,7 +306,7 @@
                                             <ComboBox ItemsSource="{Binding DataContext.CurrentNodes, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   SelectedItem="{Binding DataContext.TargetNodeForConnection, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   Margin="0,5,0,10" Padding="5"
-                                                      Background="{StaticResource PanelDark}" >
+                                                      Background="{StaticResource BorderDark}" >
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding Text, TargetNullValue='(Пустая реплика)'}" />
@@ -317,7 +317,7 @@
                                             <TextBlock Text="Текст выбора (Ответ игрока):" Foreground="Gray" FontSize="10" FontWeight="Bold"/>
                                             <TextBox Text="{Binding DataContext.NewConnectionText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" 
                                                  Margin="0,5,0,10" Padding="5"
-                                                    Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}" />
+                                                    Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}" />
 
                                             <Button Content="Создать связь" 
                                                 Command="{Binding DataContext.AddConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -358,19 +358,19 @@
                                 <!-- Свойста нпс -->
                                 <StackPanel DataContext="{Binding SelectedNpc}">
                                     <TextBlock Text="Имя NPC:" Foreground="Gray"/>
-                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}" Margin="0,5" Padding="5"/>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}" Margin="0,5" Padding="5"/>
                                     <TextBlock Text="Описание:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
                                         AcceptsReturn="True" MinHeight="60" Padding="5"
-                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
+                                             Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}"/>
                                     <TextBlock Text="Предыстория:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding Backstory, UpdateSourceTrigger=PropertyChanged}" 
                                         AcceptsReturn="True" MinHeight="60" Padding="5"
-                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
+                                             Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}"/>
                                     <TextBlock Text="Стиль речи:" Foreground="Gray" Margin="0,10,0,0"/>
                                     <TextBox Text="{Binding DialogueStyle, UpdateSourceTrigger=PropertyChanged}" 
                                         AcceptsReturn="True" MinHeight="60" Padding="5"
-                                             Background="{StaticResource PanelDark}" Foreground="{StaticResource TextMain}"/>
+                                             Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}"/>
                                 </StackPanel>
                             </ScrollViewer>
                             <!-- 3. СВОЙСТВА ВЫБРАННОЙ СВЯЗИ -->
@@ -389,7 +389,8 @@
                                 <StackPanel DataContext="{Binding SelectedConnection}">
                                     <TextBlock Text="Вариант ответа игрока:" Foreground="MediumPurple" FontWeight="Bold"/>
                                     <TextBox Text="{Binding ChoiceText, UpdateSourceTrigger=PropertyChanged}" 
-                                        Margin="0,10" Padding="5" AcceptsReturn="True" TextWrapping="Wrap"/>
+                                        Margin="0,10" Padding="5" AcceptsReturn="True" TextWrapping="Wrap"
+                                             Background="{StaticResource BorderDark}" Foreground="{StaticResource TextMain}"/>
 
                                     <Button Content="Удалить этот переход" 
                                         Command="{Binding DataContext.RemoveConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
