@@ -27,14 +27,26 @@ namespace SFM
 
             var viewModel = new MainViewModel(service);
             this.DataContext = viewModel;
-            // Подписываемся на уведомления от ViewModel
             viewModel.PropertyChanged += (s, e) => {
-        if (e.PropertyName == nameof(viewModel.CurrentConnections) || e.PropertyName == nameof(viewModel.SelectedDialogue))
-            {
+            if (e.PropertyName == nameof(viewModel.CurrentConnections) || e.PropertyName == nameof(viewModel.SelectedDialogue) || e.PropertyName == nameof(viewModel.SelectedConnection))
+                {
                 RedrawConnections(); // Рисуем линии, когда создана новая связь
+                }   
+            };
+        }
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                if (DataContext is MainViewModel vm)
+                {
+                    vm.SelectedNode = null;
+                    vm.SelectedConnection = null;
+
+                    RedrawConnections();
+                }
             }
-        };
-            }
+        }
 
         private void AddNpcButton_Click(object sender, RoutedEventArgs e)
         {
@@ -102,18 +114,14 @@ namespace SFM
 
             foreach (var conn in vm.SelectedDialogue.Connections)
             {
-                // Ищем узлы по ID
                 var fromNode = vm.SelectedDialogue.Nodes.FirstOrDefault(n => n.Id == conn.FromNodeId);
                 var toNode = vm.SelectedDialogue.Nodes.FirstOrDefault(n => n.Id == conn.ToNodeId);
-
                 if (fromNode == null || toNode == null) continue;
 
-                // Координаты (центр узлов)
-                double startX = fromNode.X + 200; // Ширина узла
-                double startY = fromNode.Y + 30;
+                double startX = fromNode.X + 180; // Ширина ноды
+                double startY = fromNode.Y + 40;
                 double endX = toNode.X;
-                double endY = toNode.Y + 30;
-
+                double endY = toNode.Y + 40;
                 double offset = Math.Abs(endX - startX) * 0.5;
 
                 // Рисуем кривую
@@ -122,19 +130,40 @@ namespace SFM
                     Stroke = Brushes.MediumPurple,
                     StrokeThickness = 2,
                     Data = new PathGeometry(new[] {
-                new PathFigure(new Point(startX, startY), new[] {
-                    new BezierSegment(
-                        new Point(startX + offset, startY),
-                        new Point(endX - offset, endY),
-                        new Point(endX, endY), true)
-                }, false)
-            })
-                };
+                    new PathFigure(new Point(startX, startY), new[] {
+                    new BezierSegment(new Point(startX + offset, startY), new Point(endX - offset, endY), new Point(endX, endY), true)}, false)})};
                 ConnectionsCanvas.Children.Add(path);
+
+                var label = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromRgb(35, 35, 35)),
+                    BorderBrush = Brushes.MediumPurple,
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(8, 4, 8, 4),
+                    Cursor = Cursors.Hand,
+                    Child = new TextBlock { Text = conn.ChoiceText, Foreground = Brushes.White, FontSize = 10 }
+                };
+
+                if (vm.SelectedConnection == conn)
+                {
+                    label.BorderBrush = Brushes.Cyan;
+                    label.BorderThickness = new Thickness(2);
+                }
+
+                label.MouseDown += (s, e) => {
+                    vm.SelectedConnection = conn;
+                    vm.SelectedNode = null;
+                    e.Handled = true; // Чтобы клик не "провалился" на фон
+                };
+
+                // Центрируем плашку
+                Canvas.SetLeft(label, (startX + endX) / 2 - 40);
+                Canvas.SetTop(label, (startY + endY) / 2 - 15);
+                ConnectionsCanvas.Children.Add(label);
             }
         }
 
-        // При движении узла - перерисовываем
         private void Node_DragDelta(object sender, DragDeltaEventArgs e)
         {
             var thumb = sender as Thumb;
@@ -180,6 +209,59 @@ namespace SFM
                     vm.SelectedNode = node;
                 }
             }
-        } 
+        }
+        private Point _lastMousePosition;
+        private bool _isPanning;
+
+        private void Editor_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var matrix = EditorMatrixTransform.Matrix;
+            var scale = e.Delta > 0 ? 1.1 : 0.9; // Сила зума
+
+            // Точка, куда указывает мышь (центр зума)
+            var position = e.GetPosition(EditorContent);
+            matrix.ScaleAtPrepend(scale, scale, position.X, position.Y);
+
+            EditorMatrixTransform.Matrix = matrix;
+            e.Handled = true; // Чтобы не прокручивались другие элементы
+        }
+
+        private void Editor_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Если нажали среднюю кнопку или просто на пустой фон холста
+            if (e.ChangedButton == MouseButton.Middle || e.Source is Canvas)
+            {
+                _lastMousePosition = e.GetPosition(this);
+                _isPanning = true;
+                ((UIElement)sender).CaptureMouse();
+
+                // Сбрасываем выбор ноды, если кликнули по фону
+                if (DataContext is MainViewModel vm && e.Source is Canvas)
+                {
+                    vm.SelectedNode = null;
+                    vm.SelectedConnection = null;
+                }
+            }
+        }
+
+        private void Editor_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_isPanning)
+            {
+                Point currentPosition = e.GetPosition(this);
+                Vector delta = currentPosition - _lastMousePosition;
+                _lastMousePosition = currentPosition;
+
+                var matrix = EditorMatrixTransform.Matrix;
+                matrix.Translate(delta.X, delta.Y);
+                EditorMatrixTransform.Matrix = matrix;
+            }
+        }
+
+        private void Editor_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            _isPanning = false;
+            ((UIElement)sender).ReleaseMouseCapture();
+        }
     }
 }

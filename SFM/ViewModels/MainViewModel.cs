@@ -53,6 +53,7 @@ public class MainViewModel : ViewModelBase
         {
             _selectedNode = value;
             OnPropertyChanged();
+            if (value != null) SelectedConnection = null;
         }
     }
     private Node? _targetNodeForConnection;
@@ -74,12 +75,25 @@ public class MainViewModel : ViewModelBase
             _newConnectionText= value; OnPropertyChanged();
         }
     }
+    private Connection? _selectedConnection;
+    public Connection? SelectedConnection
+    {
+        get => _selectedConnection;
+        set
+        {
+            _selectedConnection = value;
+            OnPropertyChanged();
+            if (value != null)  SelectedNode = null; 
+        }
+    }
     public List<Node>? CurrentNodes => SelectedDialogue?.Nodes?.ToList();
     public List<Connection>? CurrentConnections => SelectedDialogue?.Connections;
 
     public ICommand AddNpcCommand { get; }
     public ICommand AddDialogueCommand { get; }
     public ICommand AddNodeCommand { get; }
+    public ICommand RemoveNodeCommand { get; }
+
 
     public MainViewModel(DialogueService service)
     {
@@ -137,6 +151,29 @@ public class MainViewModel : ViewModelBase
             CurrentNpcDialogues.Add(graph);
             SelectedDialogue = graph;
         }, _ => SelectedNpc != null); // Кнопка будет неактивна, если NPC не выбран
+
+        RemoveNodeCommand = new RelayCommand(_ => {
+            if (SelectedDialogue == null || SelectedNode == null) return;
+
+            var result = System.Windows.MessageBox.Show(
+                "Вы уверены, что хотите удалить эту реплику и все её связи?",
+                "Удаление",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                // Удаляем через сервис
+                _service.RemoveNode(SelectedDialogue, SelectedNode);
+
+                // Обнуляем выбор, чтобы панель свойств скрылась
+                SelectedNode = null;
+
+                // Обновляем UI (узлы и линии)
+                OnPropertyChanged(nameof(CurrentNodes));
+                OnPropertyChanged(nameof(CurrentConnections));
+            }
+        }, _ => SelectedNode != null);
 
         AddConnectionCommand = new RelayCommand(_ => {
             if (SelectedNode == null || TargetNodeForConnection == null) return;

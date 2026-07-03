@@ -6,7 +6,8 @@
         xmlns:vm="clr-namespace:SFM.ViewModels"
         xmlns:local="clr-namespace:SFM" d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         mc:Ignorable="d"
-        Title="Dialogue Editor" Height="768" Width="1024">
+        Title="Dialogue Editor" Height="768" Width="1024"
+        KeyDown="Window_KeyDown">
 
     <Window.Resources>
         <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
@@ -122,47 +123,48 @@
                     </Border>
                 </Grid>
 
-                <Border Grid.Column="1" Background="#1E1E1E" ClipToBounds="True">
-                    <Grid Background="#1E1E1E">
-                        <!-- Фон теперь здесь -->
+                <Border Grid.Column="1" Background="#1E1E1E" ClipToBounds="True"
+                    MouseWheel="Editor_MouseWheel" 
+                    MouseDown="Editor_MouseDown" 
+                    MouseMove="Editor_MouseMove" 
+                    MouseUp="Editor_MouseUp">
+                    <Grid>
+                        <!-- Этот Canvas — наш "бесконечный" холст -->
+                        <Canvas x:Name="EditorContent"  Width="5000" Height="5000">
+                            <!-- Рисуем сетку (точки) -->
+                            <Canvas.Background>
+                                <VisualBrush TileMode="Tile" Viewport="0,0,40,40" ViewportUnits="Absolute">
+                                    <VisualBrush.Visual>
+                                        <Ellipse Fill="#252525" Width="2" Height="2"/>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Canvas.Background>
 
-                        <!-- Слой линий (снизу) -->
-                        <Canvas x:Name="ConnectionsCanvas" Panel.ZIndex="0" IsHitTestVisible="False" Background="Transparent"/>
+                            <!-- СЛОЙ 1: ЛИНИИ (под узлами) -->
+                            <Canvas x:Name="ConnectionsCanvas" Background="Transparent" IsHitTestVisible="True" Panel.ZIndex="0"/>
 
-                        <!-- Кнопка (сверху всех) -->
-                        <Button Content="+ Создать реплику (Node)" 
-                            HorizontalAlignment="Left" VerticalAlignment="Top" 
-                            Margin="15" Padding="10,5" Panel.ZIndex="10"
-                            Background="#3D3D3D" Foreground="#660BAB"
-                            Click="AddNode_Click"/>
-
-                        <!-- Слой узлов -->
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" 
-                             Panel.ZIndex="1" Background="Transparent">
-                            <ItemsControl ItemsSource="{Binding CurrentNodes}">
+                            <!-- СЛОЙ 2: УЗЛЫ (над линиями) -->
+                            <ItemsControl ItemsSource="{Binding CurrentNodes}" Panel.ZIndex="1">
                                 <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <Canvas Background="Transparent" Width="2000" Height="2000" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas Background="Transparent" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
 
-                                    <ItemsControl.ItemContainerStyle>
-                                        <Style TargetType="ContentPresenter">
-                                            <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}" />
-                                            <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}" />
-                                        </Style>
-                                    </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}" />
+                                        <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
 
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <!-- Добавляем PreviewMouseDown для выбора ноды -->
                                         <Thumb DragDelta="Node_DragDelta" PreviewMouseDown="Node_PreviewMouseDown">
                                             <Thumb.Template>
                                                 <ControlTemplate>
-                                                    <!-- Даем имя бордеру, чтобы триггер мог его найти -->
-                                                    <Border x:Name="NodeBorder" 
-                                                            Width="180" Background="#2D2D2D" 
-                                                            CornerRadius="5" BorderBrush="#555" BorderThickness="1">
+                                                    <Border x:Name="NodeBorder" Width="180" Background="#2D2D2D" 
+                                            CornerRadius="5" BorderBrush="#555" BorderThickness="1">
                                                         <StackPanel>
                                                             <Border Background="MediumPurple" Padding="5">
                                                                 <TextBlock Text="NPC REPLY" FontSize="9" Foreground="White" FontWeight="Bold"/>
@@ -172,22 +174,18 @@
                                                     </Border>
 
                                                     <ControlTemplate.Triggers>
-                                                        <!-- Триггер: если этот Node является выбранным во ViewModel -->
                                                         <DataTrigger Value="True">
                                                             <DataTrigger.Binding>
                                                                 <MultiBinding Converter="{StaticResource EqualityConverter}">
                                                                     <Binding />
-                                                                    <!-- Текущий Node -->
                                                                     <Binding Path="DataContext.SelectedNode" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
                                                                 </MultiBinding>
                                                             </DataTrigger.Binding>
-
-                                                            <!-- Эффект подсветки -->
                                                             <Setter TargetName="NodeBorder" Property="BorderBrush" Value="MediumPurple"/>
                                                             <Setter TargetName="NodeBorder" Property="BorderThickness" Value="2"/>
                                                             <Setter TargetName="NodeBorder" Property="Effect">
                                                                 <Setter.Value>
-                                                                    <DropShadowEffect BlurRadius="15" Color="Cyan" ShadowDepth="0" Opacity="0.8"/>
+                                                                    <DropShadowEffect BlurRadius="15" Color="MediumPurple" ShadowDepth="0" Opacity="0.8"/>
                                                                 </Setter.Value>
                                                             </Setter>
                                                         </DataTrigger>
@@ -198,9 +196,21 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
+
+                            <!-- Трансформация для зума и панорамы -->
+                            <Canvas.RenderTransform>
+                                <MatrixTransform x:Name="EditorMatrixTransform"/>
+                            </Canvas.RenderTransform>
+                        </Canvas>
+
+                        <!-- Кнопка (не зумится, всегда в углу) -->
+                        <Button Content="+ Создать реплику" 
+                HorizontalAlignment="Left" VerticalAlignment="Top" 
+                Margin="15" Padding="10,5" Panel.ZIndex="10"
+                Background="#3D3D3D" Foreground="White"
+                Click="AddNode_Click"/>
+                    </Grid>
+                </Border>
 
 
                 <!-- свойства-->
@@ -232,6 +242,16 @@
                                 </ScrollViewer.Style>
 
                                 <StackPanel DataContext="{Binding SelectedNode}">
+                                    <Button Content="Удалить эту реплику" 
+                                            Command="{Binding DataContext.RemoveNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            Background="#FF4C4C" Foreground="White" FontWeight="Bold" 
+                                            Margin="0,0,0,15" Height="25">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="5"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
                                     <TextBlock Text="Текст реплики (Node):" Foreground="Gray" FontWeight="Bold"/>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0,5" Padding="5"/>
@@ -278,17 +298,20 @@
                                         <Style.Triggers>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <!-- Нода должна быть пуста -->
+                                                    <!-- NPC показываем только если: -->
+                                                    <Condition Binding="{Binding SelectedConnection}" Value="{x:Null}"/>
+                                                    <!-- 1. СВЯЗЬ НЕ ВЫБРАНА (Добавь это!) -->
                                                     <Condition Binding="{Binding SelectedNode}" Value="{x:Null}"/>
-                                                    <!-- А NPC должен быть выбран -->
+                                                    <!-- 2. НОДА НЕ ВЫБРАНА -->
                                                     <Condition Binding="{Binding SelectedNpc, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible"/>
+                                                    <!-- 3. NPC ВЫБРАН -->
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ScrollViewer.Style>
-                                
+
                                 <!-- Свойста нпс -->
                                 <StackPanel DataContext="{Binding SelectedNpc}">
                                     <TextBlock Text="Имя NPC:" Foreground="Gray"/>
@@ -304,17 +327,43 @@
                                         AcceptsReturn="True" MinHeight="60" Padding="5"/>
                                 </StackPanel>
                             </ScrollViewer>
+                            <!-- 3. СВОЙСТВА ВЫБРАННОЙ СВЯЗИ -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.Style>
+                                    <Style TargetType="ScrollViewer">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedConnection, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ScrollViewer.Style>
 
+                                <StackPanel DataContext="{Binding SelectedConnection}">
+                                    <TextBlock Text="Вариант ответа игрока:" Foreground="MediumPurple" FontWeight="Bold"/>
+                                    <TextBox Text="{Binding ChoiceText, UpdateSourceTrigger=PropertyChanged}" 
+                                        Margin="0,10" Padding="5" AcceptsReturn="True" TextWrapping="Wrap"/>
+
+                                    <Button Content="Удалить этот переход" 
+                                        Command="{Binding DataContext.RemoveConnectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Background="#FF4C4C" Foreground="White" Margin="0,20,0,0"/>     
+                                </StackPanel>
+                            </ScrollViewer>
                             <!-- 3. ЗАГЛУШКА (Если совсем ничего не выбрано) -->
-                            <TextBlock Text="Выберите объект" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray">
+                            <TextBlock Text="Выберите объект (NPC, реплику или связь)" 
+                               VerticalAlignment="Center" HorizontalAlignment="Center" 
+                               Foreground="Gray" TextAlignment="Center" TextWrapping="Wrap">    
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding SelectedNode}" Value="{x:Null}"/>
+                                                    <!-- Теперь проверяем ТРИ условия. Если всё пусто - показываем текст -->
                                                     <Condition Binding="{Binding SelectedNpc}" Value="{x:Null}"/>
+                                                    <Condition Binding="{Binding SelectedNode}" Value="{x:Null}"/>
+                                                    <Condition Binding="{Binding SelectedConnection}" Value="{x:Null}"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </MultiDataTrigger>
