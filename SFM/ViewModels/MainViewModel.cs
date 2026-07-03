@@ -6,6 +6,7 @@ using SFM.Models;
 using SFM.Services;
 using Microsoft.Win32;
 using System.IO.Packaging;
+using System.IO;
 namespace SFM.ViewModels;
 
 public class MainViewModel : ViewModelBase
@@ -16,7 +17,7 @@ public class MainViewModel : ViewModelBase
     public ICommand SaveCommand { get; }
     public ICommand OpenProjectCommand { get; }
     public ICommand AddConnectionCommand { get; }
-
+    public ICommand SaveAsCommand { get; }
 
     public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
@@ -108,7 +109,8 @@ public class MainViewModel : ViewModelBase
         });
         SaveCommand = new RelayCommand(_ => {
             _service.SaveProject(); // Вызываем метод сохранения из сервиса
-            System.Windows.MessageBox.Show("Проект успешно сохранен в JSON!");
+            string fileName = Path.GetFileName(_service.CurrentFilePath ?? "project_data.json");
+            System.Windows.MessageBox.Show($"Изменения сохранены в файл: {fileName}");
         });
 
         OpenProjectCommand = new RelayCommand(_ => {
@@ -174,6 +176,17 @@ public class MainViewModel : ViewModelBase
                 OnPropertyChanged(nameof(CurrentConnections));
             }
         }, _ => SelectedNode != null);
+
+        SaveAsCommand = new RelayCommand(_ => {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "JSON файлы (*.json)|*.json";
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                _service.SaveProject(saveFileDialog.FileName);
+                System.Windows.MessageBox.Show("Файл успешно создан!");
+            }
+        });
 
         AddConnectionCommand = new RelayCommand(_ => {
             if (SelectedNode == null || TargetNodeForConnection == null) return;

@@ -419,8 +419,11 @@
                                 </TextBlock.Style>
                             </TextBlock>
                         </Grid>
-
-                        <Button Grid.Row="2" Content="Сохранить проект"  Style="{StaticResource TopButtonStyle}" FontSize="14" Command="{Binding SaveCommand}" />
+                        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                            <Button  Content="Сохранить проект"  Style="{StaticResource TopButtonStyle}" FontSize="14" Command="{Binding SaveCommand}" />
+                            <Button  Content="Сохранить как..." Style="{StaticResource TopButtonStyle}" Command="{Binding SaveAsCommand}"></Button>
+                        </StackPanel>
+                        
                     </Grid>
                 </Border>
 

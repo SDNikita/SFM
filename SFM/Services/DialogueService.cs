@@ -12,7 +12,7 @@ public class DialogueService
 {
     public List<Npc> Npcs { get; private set; } = new();
     public List<DialogueGraph> Dialogues { get; private set; } = new();
-    private readonly string _path = "project_data.json";
+    public string? CurrentFilePath { get; set; }
     public Npc AddNpc(
          string name,
          string description = "",
@@ -111,17 +111,20 @@ public class DialogueService
     {
         return Dialogues.Where(d => d.NpcId == npc.Id).ToList();
     }
-    public void SaveProject()
+    public void SaveProject(string? filePath = null)
     {
-        var project = new Project
+        if (filePath != null)
         {
-            Npcs = this.Npcs,
-            Dialogues = this.Dialogues
-        };
+            CurrentFilePath = filePath;
+        }
 
+        string targetPath = CurrentFilePath ?? "project_data.json";
+
+        var project = new Project { Npcs = this.Npcs, Dialogues = this.Dialogues };
         var options = new JsonSerializerOptions { WriteIndented = true };
         string json = JsonSerializer.Serialize(project, options);
-        File.WriteAllText(_path, json);
+
+        File.WriteAllText(targetPath, json);
     }
 
     public void LoadProject(string filePath)
@@ -130,9 +133,10 @@ public class DialogueService
 
         try
         {
+            CurrentFilePath = filePath;
+
             string json = File.ReadAllText(filePath);
             var project = JsonSerializer.Deserialize<Project>(json);
-
             if (project != null)
             {
                 this.Npcs = project.Npcs ?? new();
