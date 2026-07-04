@@ -58,6 +58,8 @@
                                 <Setter TargetName="BtnBorder" Property="Background" Value="{StaticResource AccentPurple}"/>
                                 <Setter Property="Foreground" Value="Black"/>
                             </Trigger>
+                            
+                            
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -122,7 +124,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <Button Content="Конструктор" Style="{StaticResource TopButtonStyle}"/>
                     <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}" Click="SimulationButton_Click"/>
-                    <Button Content="Импорт" Style="{StaticResource TopButtonStyle}" />
+                    <Button Content="Экспорт" Style="{StaticResource TopButtonStyle}" />
                 </StackPanel>
             </Grid>
 
@@ -211,16 +213,17 @@
                                             <Thumb.Template>
                                                 <ControlTemplate>
                                                     <Border x:Name="NodeBorder" Width="180" Background="#2D2D2D" 
-                                            CornerRadius="5" BorderBrush="#555" BorderThickness="1">
+                                                            CornerRadius="5" BorderBrush="#555" BorderThickness="1">
                                                         <StackPanel>
-                                                            <Border Background="MediumPurple" Padding="5">
-                                                                <TextBlock Text="NPC REPLY" FontSize="9" Foreground="White" FontWeight="Bold"/>
+                                                            <Border x:Name="HeaderBorder" Background="MediumPurple" Padding="5">
+                                                                <TextBlock x:Name="HeaderText" Text="NPC REPLY" FontSize="9" Foreground="White" FontWeight="Bold"/>
                                                             </Border>
                                                             <TextBlock Text="{Binding Text}" Margin="10" Foreground="White" TextWrapping="Wrap"/>
                                                         </StackPanel>
                                                     </Border>
 
                                                     <ControlTemplate.Triggers>
+                                                        <!-- ТРИГГЕР 1: Подсветка выбранной ноды  -->
                                                         <DataTrigger Value="True">
                                                             <DataTrigger.Binding>
                                                                 <MultiBinding Converter="{StaticResource EqualityConverter}">
@@ -235,6 +238,19 @@
                                                                     <DropShadowEffect BlurRadius="15" Color="MediumPurple" ShadowDepth="0" Opacity="0.8"/>
                                                                 </Setter.Value>
                                                             </Setter>
+                                                        </DataTrigger>
+
+                                                        <!-- ТРИГГЕР 2: Подсветка СТАРТОВОЙ ноды -->
+                                                        <DataTrigger Value="True">
+                                                            <DataTrigger.Binding>
+                                                                <MultiBinding Converter="{StaticResource EqualityConverter}">
+                                                                    <Binding Path="Id" />
+                                                                    <Binding Path="DataContext.SelectedDialogue.StartNodeId" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                </MultiBinding>
+                                                            </DataTrigger.Binding>
+                                                            <Setter TargetName="HeaderBorder" Property="Background" Value="#03DAC6"/>
+                                                            <Setter TargetName="HeaderText" Property="Text" Value="СТАРТ (ВХОД)"/>
+                                                            <Setter TargetName="HeaderText" Property="Foreground" Value="Black"/>
                                                         </DataTrigger>
                                                     </ControlTemplate.Triggers>
                                                 </ControlTemplate>
@@ -252,10 +268,10 @@
 
                         <!-- Кнопка (не зумится, всегда в углу) -->
                         <Button Content="+ Создать реплику" 
-                HorizontalAlignment="Left" VerticalAlignment="Top" 
-                Margin="15" Padding="10,5" Panel.ZIndex="10"
-                Background="#3D3D3D" Foreground="MediumPurple"
-                Click="AddNode_Click"/>
+                            HorizontalAlignment="Left" VerticalAlignment="Top" 
+                            Margin="15" Padding="10,5" Panel.ZIndex="10"
+                            Background="#3D3D3D" Foreground="MediumPurple"
+                            Click="AddNode_Click"/>
                     </Grid>
                 </Border>
 
@@ -289,6 +305,15 @@
                                 </ScrollViewer.Style>
 
                                 <StackPanel DataContext="{Binding SelectedNode}">
+                                    <Button Content="Сделать стартовой" 
+                                        Command="{Binding DataContext.SetStartNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Background="#660BAB" Foreground="White" Margin="0,5">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="5"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
                                     <Button Content="Удалить эту реплику" 
                                             Command="{Binding DataContext.RemoveNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             Background="#FF4C4C" Foreground="White" FontWeight="Bold" 

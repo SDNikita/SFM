@@ -10,8 +10,8 @@ namespace SFM
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length < 2) return false;
-            return values[0] != null && values[0] == values[1];
+            if (values.Length < 2 || values[0] == null || values[1] == null) return false;
+            return values[0].ToString() == values[1].ToString();
         }
         public object[]? ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {

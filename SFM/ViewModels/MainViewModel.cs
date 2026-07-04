@@ -19,6 +19,7 @@ public class MainViewModel : ViewModelBase
     public ICommand AddConnectionCommand { get; }
     public ICommand SaveAsCommand { get; }
     public ICommand NewProjectCommand { get; }
+    public ICommand SetStartNodeCommand { get; }
     public string CurrentFileName
     {
         get
@@ -149,6 +150,16 @@ public class MainViewModel : ViewModelBase
                 System.Windows.MessageBox.Show("Создан новый пустой проект.");
             }
         });
+
+        SetStartNodeCommand = new RelayCommand(_ => {
+            if (SelectedDialogue != null && SelectedNode != null)
+            {
+                SelectedDialogue.StartNodeId = SelectedNode.Id;
+                OnPropertyChanged(nameof(CurrentNodes));
+                System.Windows.MessageBox.Show("Эта реплика теперь стартовая!");
+            }
+        }, _ => SelectedNode != null);
+
 
         OpenProjectCommand = new RelayCommand(_ => {
             OpenFileDialog openFileDialog = new OpenFileDialog();
