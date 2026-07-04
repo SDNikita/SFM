@@ -72,9 +72,9 @@ namespace SFM
             var window = new AddDialogueWindow(service.Npcs);
             window.Owner = this;
 
-            if (window.ShowDialog() == true)
+            if (window.ShowDialog() == true&& window.SelectedNpc != null)
             {
-                if (window.ShowDialog() == true && window.SelectedNpc != null)
+                if (window.SelectedNpc != null)
                 {
                     service.AddDialogue(window.SelectedNpc, window.DialoName);
                     RefreshDialogueList();
@@ -112,54 +112,58 @@ namespace SFM
             var vm = DataContext as MainViewModel;
             if (vm?.SelectedDialogue == null) return;
 
+            var connectionsByNode = vm.SelectedDialogue.Connections
+                .GroupBy(c => c.FromNodeId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             foreach (var conn in vm.SelectedDialogue.Connections)
             {
                 var fromNode = vm.SelectedDialogue.Nodes.FirstOrDefault(n => n.Id == conn.FromNodeId);
                 var toNode = vm.SelectedDialogue.Nodes.FirstOrDefault(n => n.Id == conn.ToNodeId);
                 if (fromNode == null || toNode == null) continue;
 
-                double startX = fromNode.X + 180; // Ширина ноды
+                double startX = fromNode.X + 180;
                 double startY = fromNode.Y + 40;
                 double endX = toNode.X;
                 double endY = toNode.Y + 40;
-                double offset = Math.Abs(endX - startX) * 0.5;
+                double offsetBezier = Math.Abs(endX - startX) * 0.5;
 
-                // Рисуем кривую
+
+                int connectionIndex = connectionsByNode[conn.FromNodeId].IndexOf(conn);
+
+                double verticalShift = connectionIndex * 35;
+
                 Path path = new Path
                 {
                     Stroke = Brushes.MediumPurple,
                     StrokeThickness = 2,
                     Data = new PathGeometry(new[] {
-                    new PathFigure(new Point(startX, startY), new[] {
-                    new BezierSegment(new Point(startX + offset, startY), new Point(endX - offset, endY), new Point(endX, endY), true)}, false)})};
+                new PathFigure(new Point(startX, startY), new[] {
+                    new BezierSegment(
+                        new Point(startX + offsetBezier, startY + verticalShift), // Добавляем сдвиг в контрольную точку
+                        new Point(endX - offsetBezier, endY),
+                        new Point(endX, endY), true)}, false) })};
                 ConnectionsCanvas.Children.Add(path);
 
                 var label = new Border
                 {
                     Background = new SolidColorBrush(Color.FromRgb(35, 35, 35)),
-                    BorderBrush = Brushes.MediumPurple,
-                    BorderThickness = new Thickness(1),
+                    BorderBrush = vm.SelectedConnection == conn ? Brushes.Cyan : Brushes.MediumPurple,
+                    BorderThickness = new Thickness(vm.SelectedConnection == conn ? 2 : 1),
                     CornerRadius = new CornerRadius(10),
                     Padding = new Thickness(8, 4, 8, 4),
-                    Cursor = Cursors.Hand,
                     Child = new TextBlock { Text = conn.ChoiceText, Foreground = Brushes.White, FontSize = 10 }
                 };
-
-                if (vm.SelectedConnection == conn)
-                {
-                    label.BorderBrush = Brushes.Cyan;
-                    label.BorderThickness = new Thickness(2);
-                }
 
                 label.MouseDown += (s, e) => {
                     vm.SelectedConnection = conn;
                     vm.SelectedNode = null;
-                    e.Handled = true; // Чтобы клик не "провалился" на фон
+                    e.Handled = true;
                 };
 
-                // Центрируем плашку
                 Canvas.SetLeft(label, (startX + endX) / 2 - 40);
-                Canvas.SetTop(label, (startY + endY) / 2 - 15);
+                Canvas.SetTop(label, ((startY + endY) / 2 - 15) + (verticalShift / 1.5));
+
                 ConnectionsCanvas.Children.Add(label);
             }
         }
@@ -263,7 +267,23 @@ namespace SFM
             _isPanning = false;
             ((UIElement)sender).ReleaseMouseCapture();
         }
+        private void SimulationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as MainViewModel;
 
-        
+            if (vm?.SelectedDialogue == null || vm?.SelectedNpc == null)
+            {
+                MessageBox.Show("Сначала выберите NPC и конкретный Диалог для симуляции.");
+                return;
+            }
+
+            var simulatorWindow = new SimulatorWindow();
+            var simulatorVm = new SimulatorViewModel(vm.SelectedDialogue, vm.SelectedNpc);
+
+            simulatorWindow.DataContext = simulatorVm;
+            simulatorWindow.Owner = this; 
+            simulatorWindow.ShowDialog();
+        }
+
     }
 }

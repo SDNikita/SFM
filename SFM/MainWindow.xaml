@@ -118,7 +118,7 @@
                 <!-- Твои кнопки справа (Конструктор, Симулятор...) -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <Button Content="Конструктор" Style="{StaticResource TopButtonStyle}"/>
-                    <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}"/>
+                    <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}" Click="SimulationButton_Click"/>
                     <Button Content="Импорт" Style="{StaticResource TopButtonStyle}" />
                 </StackPanel>
             </Grid>
@@ -157,7 +157,11 @@
                         <DockPanel LastChildFill="False">
                             <Button Content="+" Style="{StaticResource PlusButtonStyle}" DockPanel.Dock="Right" VerticalAlignment="Top" Click="AddDialogueButton_Click"/>
                             <TextBlock Text="Диалоги" Foreground="{StaticResource TextMain}" FontSize="20" DockPanel.Dock="Top" Height="49"/>
-                            <ListBox x:Name="DialogueList" Margin="10,0,0,0" Background="{StaticResource BorderDark}" Width="165" Foreground="{StaticResource TextMain}"/>
+                            <ListBox x:Name="DialogueList" Margin="10,0,0,0"
+                                     Background="{StaticResource BorderDark}" Width="165" 
+                                     Foreground="{StaticResource TextMain}"
+                                     ItemsSource="{Binding CurrentNpcDialogues}" 
+                                     SelectedItem="{Binding SelectedDialogue, Mode=TwoWay}"/>
 
                         </DockPanel>
                     </Border>

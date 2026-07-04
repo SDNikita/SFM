@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="data\" />
+    <Folder Include="Window\" />
   </ItemGroup>
 
   <ItemGroup>

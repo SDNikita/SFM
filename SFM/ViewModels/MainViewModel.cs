@@ -44,6 +44,8 @@ public class MainViewModel : ViewModelBase
             OnPropertyChanged();
             OnPropertyChanged(nameof(CurrentNodes));
             OnPropertyChanged(nameof(CurrentConnections));
+            SelectedNode = null;
+            SelectedConnection = null;
         }
     }
     private Node? _selectedNode;
@@ -189,19 +191,30 @@ public class MainViewModel : ViewModelBase
         });
 
         AddConnectionCommand = new RelayCommand(_ => {
-            if (SelectedNode == null || TargetNodeForConnection == null) return;
-
-            if (SelectedDialogue != null && SelectedNode != null && TargetNodeForConnection != null)
+            if (SelectedNode != null && TargetNodeForConnection != null)
             {
-                _service.AddConnection(SelectedDialogue, SelectedNode, TargetNodeForConnection, NewConnectionText);
+                if (SelectedNode.Id == TargetNodeForConnection.Id)
+                {
+                    System.Windows.MessageBox.Show("Нельзя создать переход из реплики в саму себя!",
+                                                   "Ошибка связи",
+                                                   System.Windows.MessageBoxButton.OK,
+                                                   System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (SelectedDialogue != null)
+                {
+                    _service.AddConnection(SelectedDialogue, SelectedNode, TargetNodeForConnection, NewConnectionText);
+                }
+
+                NewConnectionText = "Далее...";
+                TargetNodeForConnection = null;
+
+                OnPropertyChanged(nameof(CurrentConnections));
             }
-
-            NewConnectionText = "Далее...";
-            TargetNodeForConnection = null;
-
-            OnPropertyChanged(nameof(CurrentConnections));
-
-        }, _ => SelectedNode != null && TargetNodeForConnection != null);
+        }, _ => SelectedNode != null &&
+                TargetNodeForConnection != null &&
+                SelectedNode != TargetNodeForConnection);
 
         AddNodeCommand = new RelayCommand(_ => {
             if (SelectedDialogue == null) return;
