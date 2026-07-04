@@ -18,7 +18,17 @@ public class MainViewModel : ViewModelBase
     public ICommand OpenProjectCommand { get; }
     public ICommand AddConnectionCommand { get; }
     public ICommand SaveAsCommand { get; }
+    public ICommand NewProjectCommand { get; }
+    public string CurrentFileName
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_service.CurrentFilePath))
+                return "Новый проект";
 
+            return System.IO.Path.GetFileName(_service.CurrentFilePath);
+        }
+    }
     public ObservableCollection<DialogueGraph> CurrentNpcDialogues { get; } = new();
 
     private Npc? _selectedNpc;
@@ -115,6 +125,31 @@ public class MainViewModel : ViewModelBase
             System.Windows.MessageBox.Show($"Изменения сохранены в файл: {fileName}");
         });
 
+        NewProjectCommand = new RelayCommand(_ => {
+            var result = System.Windows.MessageBox.Show(
+                "Вы уверены, что хотите создать новый проект? Все несохраненные данные будут потеряны.",
+                "Новый проект",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                _service.ClearProject();
+
+                Npcs.Clear();
+                CurrentNpcDialogues.Clear();
+
+                SelectedNpc = null;
+                SelectedDialogue = null;
+                SelectedNode = null;
+                SelectedConnection = null;
+
+                OnPropertyChanged(nameof(CurrentFileName));
+
+                System.Windows.MessageBox.Show("Создан новый пустой проект.");
+            }
+        });
+
         OpenProjectCommand = new RelayCommand(_ => {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*";
@@ -189,6 +224,8 @@ public class MainViewModel : ViewModelBase
                 System.Windows.MessageBox.Show("Файл успешно создан!");
             }
         });
+
+
 
         AddConnectionCommand = new RelayCommand(_ => {
             if (SelectedNode != null && TargetNodeForConnection != null)

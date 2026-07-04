@@ -6,6 +6,8 @@ using System.Text.Json;
 namespace SFM.Services;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using System.Windows.Shapes;
 
 public class DialogueService
@@ -121,7 +123,7 @@ public class DialogueService
         string targetPath = CurrentFilePath ?? "project_data.json";
 
         var project = new Project { Npcs = this.Npcs, Dialogues = this.Dialogues };
-        var options = new JsonSerializerOptions { WriteIndented = true };
+        var options = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
         string json = JsonSerializer.Serialize(project, options);
 
         File.WriteAllText(targetPath, json);
@@ -150,6 +152,12 @@ public class DialogueService
 
 
     }
-    
+    public void ClearProject()
+    {
+        Npcs.Clear();
+        Dialogues.Clear();
+        CurrentFilePath = null; // Сбрасываем путь, чтобы "Сохранить" не переписало старый файл
+    }
+
 }
 
