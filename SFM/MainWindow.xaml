@@ -226,10 +226,13 @@
                                                         <!-- ТРИГГЕР 1: Подсветка выбранной ноды  -->
                                                         <DataTrigger Value="True">
                                                             <DataTrigger.Binding>
+                                                                
                                                                 <MultiBinding Converter="{StaticResource EqualityConverter}">
-                                                                    <Binding />
-                                                                    <Binding Path="DataContext.SelectedNode" RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
+                                                                    <Binding Path="Id"/>
+                                                                    <Binding Path="DataContext.SelectedNode.Id" 
+                                                                         RelativeSource="{RelativeSource AncestorType=ItemsControl}"/>
                                                                 </MultiBinding>
+                                                                
                                                             </DataTrigger.Binding>
                                                             <Setter TargetName="NodeBorder" Property="BorderBrush" Value="MediumPurple"/>
                                                             <Setter TargetName="NodeBorder" Property="BorderThickness" Value="2"/>
