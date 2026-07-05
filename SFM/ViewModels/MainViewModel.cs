@@ -20,6 +20,7 @@ public class MainViewModel : ViewModelBase
     public ICommand SaveAsCommand { get; }
     public ICommand NewProjectCommand { get; }
     public ICommand SetStartNodeCommand { get; }
+    public ICommand ExportCommand { get; }
     public string CurrentFileName
     {
         get
@@ -160,6 +161,22 @@ public class MainViewModel : ViewModelBase
             }
         }, _ => SelectedNode != null);
 
+        ExportCommand = new RelayCommand(_ => {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "JSON Game Data (*.json)|*.json";
+            sfd.Title = "Экспорт проекта для игры";
+
+            if (sfd.ShowDialog() == true)
+            {
+                _service.ExportCleanJson(sfd.FileName);
+
+                string csPath = Path.ChangeExtension(sfd.FileName, ".cs");
+                _service.GenerateCSharpConstants(csPath);
+
+                System.Windows.MessageBox.Show(
+                    $"Экспорт завершен!\n\n1. Данные: {Path.GetFileName(sfd.FileName)}\n2. Код констант: {Path.GetFileName(csPath)}\n\nДобавьте эти файлы в ваш проект Unity/Godot.");
+            }
+        });
 
         OpenProjectCommand = new RelayCommand(_ => {
             OpenFileDialog openFileDialog = new OpenFileDialog();

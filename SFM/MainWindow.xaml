@@ -124,7 +124,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <Button Content="Конструктор" Style="{StaticResource TopButtonStyle}"/>
                     <Button Content="Симулятор" Style="{StaticResource TopButtonStyle}" Click="SimulationButton_Click"/>
-                    <Button Content="Экспорт" Style="{StaticResource TopButtonStyle}" />
+                    <Button Content="Экспорт" Style="{StaticResource TopButtonStyle}" Command="{Binding ExportCommand}"/>
                 </StackPanel>
             </Grid>
 

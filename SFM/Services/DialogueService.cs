@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Windows.Shapes;
-
+using System.Text.RegularExpressions;
 public class DialogueService
 {
     public List<Npc> Npcs { get; private set; } = new();
@@ -39,7 +39,7 @@ public class DialogueService
         return npc;
     }
 
-    public DialogueGraph AddDialogue(Npc npc,string name)
+    public DialogueGraph AddDialogue(Npc npc, string name)
     {
         var dialogue = new DialogueGraph
         {
@@ -64,7 +64,7 @@ public class DialogueService
             dialogue.StartNodeId = node.Id;
         return node;
     }
-    public Connection AddConnection(DialogueGraph dialogue,Node from,Node to,string choiceText)
+    public Connection AddConnection(DialogueGraph dialogue, Node from, Node to, string choiceText)
     {
         var connection = new Connection
         {
@@ -78,10 +78,11 @@ public class DialogueService
 
     }
 
-    public void RenameNpc(Npc npc, string newName) {
+    public void RenameNpc(Npc npc, string newName)
+    {
         npc.Name = newName;
     }
-    public void RenameNode(Node node,string newText)
+    public void RenameNode(Node node, string newText)
     {
         node.Text = newText;
     }
@@ -102,7 +103,7 @@ public class DialogueService
     public void RemoveNpc(Npc npc)
     {
         Npcs.Remove(npc);
-        Dialogues.RemoveAll(d=>d.NpcId == npc.Id);
+        Dialogues.RemoveAll(d => d.NpcId == npc.Id);
     }
 
     public void RemoveDialogue(DialogueGraph dialogueGraph)
@@ -159,5 +160,55 @@ public class DialogueService
         CurrentFilePath = null; // Сбрасываем путь, чтобы "Сохранить" не переписало старый файл
     }
 
-}
+    public void ExportCleanJson(string path)
+    {
+        var exportData = new
+        {
+            Npcs = Npcs.Select(n => new { n.Id, n.Name }),
+            Dialogues = Dialogues.Select(d => new
+            {
+                d.Id,
+                d.NpcId,
+                d.StartNodeId,
+                Nodes = d.Nodes.Select(n => new { n.Id, n.Text }),
+                Connections = d.Connections.Select(c => new { c.FromNodeId, c.ToNodeId, c.ChoiceText })
+            })
+        };
 
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
+        File.WriteAllText(path, JsonSerializer.Serialize(exportData, options));
+
+    }
+
+    public void GenerateCSharpConstants(string path)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("// АВТОГЕНЕРИРУЕМЫЙ ФАЙЛ SFM EDITOR - НЕ РЕДАКТИРОВАТЬ ВРУЧНУЮ");
+        sb.AppendLine("namespace SFM.Generated {");
+
+        // Генерируем ID для NPC
+        sb.AppendLine("    public static class NpcIds {");
+        foreach (var npc in Npcs)
+        {
+            string safeName = Regex.Replace(npc.Name, @"[^a-zA-Z0-9_]", "_");
+            sb.AppendLine($"        public const string {safeName} = \"{npc.Id}\";");
+        }
+        sb.AppendLine("    }");
+
+        // Генерируем ID для Диалогов
+        sb.AppendLine("\n    public static class DialogueIds {");
+        foreach (var d in Dialogues)
+        {
+            string safeName = Regex.Replace(d.Name, @"[^a-zA-Z0-9_]", "_");
+            sb.AppendLine($"        public const string {safeName} = \"{d.Id}\";");
+        }
+        sb.AppendLine("    }");
+
+        sb.AppendLine("}");
+        File.WriteAllText(path, sb.ToString());
+    }
+}
